@@ -1,0 +1,10 @@
+# node_modules (both client and server)
+node_modules/
+**/node_modules/
+
+# Environment variable files (never commit secrets)
+.env
+**/.env
+
+# SQLite database file (auto-generated at runtime)
+**/*.db
