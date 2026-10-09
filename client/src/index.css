@@ -1,4 +1,4 @@
-/* Global reset — intentionally minimal for the scaffold phase */
+/* ── Reset ──────────────────────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -6,20 +6,154 @@
 }
 
 body {
-  font-family: system-ui, sans-serif;
-  background: #f9f9f9;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f5f5f5;
   color: #111;
+  line-height: 1.5;
 }
 
-main {
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ── Page wrapper (used by both pages) ─────────────────────────────────────── */
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.page h1 {
+  font-size: 2rem;
+  margin-bottom: 0.4rem;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+/* ── Loading / error messages ──────────────────────────────────────────────── */
+.status-msg {
+  padding: 3rem;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #555;
+}
+.status-msg.error {
+  color: #c0392b;
+}
+
+/* ── Product grid ───────────────────────────────────────────────────────────── */
+.product-grid {
+  display: grid;
+  /* auto-fill creates as many columns as fit; each is at least 220 px wide */
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+/* ── Product card ───────────────────────────────────────────────────────────── */
+/* <Link> renders an <a>, so we style it directly */
+.product-card {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  gap: 0.5rem;
+  cursor: pointer;
 }
 
-h1 {
-  font-size: 2rem;
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.13);
 }
+
+.card-img {
+  width: 100%;
+  aspect-ratio: 3 / 4;   /* portrait format, good for clothing */
+  object-fit: cover;
+  background: #e8e8e8;   /* placeholder colour while image loads */
+}
+
+.card-body {
+  padding: 0.9rem 1rem;
+}
+
+.card-name {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.card-price {
+  font-size: 1rem;
+  color: #2563eb;         /* blue accent for price */
+  font-weight: 500;
+}
+
+/* ── Back link ──────────────────────────────────────────────────────────────── */
+.back-link {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  color: #2563eb;
+  font-weight: 500;
+}
+.back-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Product detail card ────────────────────────────────────────────────────── */
+.detail-card {
+  display: flex;
+  gap: 2.5rem;
+  align-items: flex-start;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+/* Stack vertically on small screens */
+@media (max-width: 640px) {
+  .detail-card {
+    flex-direction: column;
+  }
+}
+
+.detail-img {
+  width: 320px;
+  max-width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #e8e8e8;
+  flex-shrink: 0;
+}
+
+.detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.detail-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.detail-price {
+  font-size: 1.4rem;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.detail-description {
+  font-size: 1rem;
+  color: #444;
+  max-width: 480px;
+}
+
