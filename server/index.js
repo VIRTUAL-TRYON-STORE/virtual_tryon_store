@@ -13,18 +13,43 @@ app.use(express.json());
 // sql.js loads a WASM file asynchronously, so we await it before accepting
 // requests — otherwise the first request might arrive before the DB is ready.
 dbPromise.then((db) => {
+  // ── Helper: turn sql.js exec() result into an array of plain objects ──────
+  // sql.js's exec() returns: []  (no rows)  OR  [{ columns, values }]
+  // This helper normalises that into the same shape as better-sqlite3's .all()
+  const rowsFrom = (result) =>
+    result.length > 0
+      ? result[0].values.map((row) =>
+          Object.fromEntries(result[0].columns.map((col, i) => [col, row[i]]))
+        )
+      : [];
+
   // ── Routes ─────────────────────────────────────────────────────────────────
-  // sql.js uses .exec() (returns row arrays) instead of better-sqlite3's .all()
+
+  // GET /api/products  — returns all products
   app.get("/api/products", (req, res) => {
-    const result = db.exec("SELECT * FROM products");
-    // exec() returns [] when the table is empty, or [{columns, values}] otherwise.
-    const rows =
-      result.length > 0
-        ? result[0].values.map((row) =>
-            Object.fromEntries(result[0].columns.map((col, i) => [col, row[i]]))
-          )
-        : [];
-    res.json(rows);
+    const result = db.exec("SELECT * FROM products ORDER BY id;");
+    res.json(rowsFrom(result));
+  });
+
+  // GET /api/products/:id  — returns a single product by id
+  // ":id" is a *route parameter* — Express captures whatever is in that URL
+  // segment and exposes it as req.params.id (always a string, so we cast it).
+  app.get("/api/products/:id", (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id < 1) {
+      return res.status(400).json({ error: "id must be a positive integer" });
+    }
+
+    // Use a prepared statement with a ? placeholder to prevent SQL injection.
+    const stmt = db.prepare("SELECT * FROM products WHERE id = ?;");
+    stmt.bind([id]);
+    const row = stmt.step() ? stmt.getAsObject() : null;
+    stmt.free();
+
+    if (!row) {
+      return res.status(404).json({ error: `Product ${id} not found` });
+    }
+    res.json(row);
   });
 
   // ── Start ───────────────────────────────────────────────────────────────────
