@@ -4,6 +4,7 @@ import Header        from "./components/Header.jsx";
 import ProductList   from "./pages/ProductList.jsx";
 import ProductDetail from "./pages/ProductDetail.jsx";
 import Cart          from "./pages/Cart.jsx";
+import TryOn         from "./tryon/TryOn.jsx";
 
 // ── App ───────────────────────────────────────────────────────────────────────
 // Two new patterns introduced here:
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/"             element={<ProductList />}   />
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/cart"         element={<Cart />}          />
+          <Route path="/tryon-test"   element={<TryOn clothingImage="/shirts/shirt.png" showControls />} />
         </Routes>
       </BrowserRouter>
     </CartProvider>
