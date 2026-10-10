@@ -1,30 +1,37 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { CartProvider } from "./context/CartContext.jsx";
+import Header        from "./components/Header.jsx";
 import ProductList   from "./pages/ProductList.jsx";
 import ProductDetail from "./pages/ProductDetail.jsx";
+import Cart          from "./pages/Cart.jsx";
 
 // ── App ───────────────────────────────────────────────────────────────────────
-// New pattern: react-router-dom
+// Two new patterns introduced here:
 //
-//   <BrowserRouter>  — wraps the whole app and enables client-side routing
-//                      using the browser's History API (real URLs, no #hash).
+// 1. <CartProvider> wraps everything.
+//    CartProvider is the Context "broadcast tower". By wrapping BrowserRouter
+//    (and therefore every page) inside it, every component in the tree can call
+//    useCartContext() and get the cart state. If we put CartProvider *inside*
+//    BrowserRouter we'd also be fine, but wrapping BrowserRouter keeps things
+//    tidy and makes it clear that the cart outlives any individual route.
 //
-//   <Routes>         — looks at the current URL and renders the first <Route>
-//                      whose path matches.
-//
-//   <Route path="/" element={<ProductList />} />
-//                    — renders ProductList when the URL is exactly "/".
-//
-//   <Route path="/products/:id" element={<ProductDetail />} />
-//                    — ":id" is a *URL parameter*; react-router captures
-//                      whatever is in that segment and makes it available via
-//                      useParams() inside ProductDetail.
+// 2. <Header> lives outside <Routes>.
+//    <Routes> only renders ONE matching route at a time. Anything placed
+//    *outside* <Routes> (but still inside <BrowserRouter>) is always visible,
+//    regardless of the current URL. That's exactly what we want for a header.
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/"             element={<ProductList />}   />
-        <Route path="/products/:id" element={<ProductDetail />} />
-      </Routes>
-    </BrowserRouter>
+    <CartProvider>
+      <BrowserRouter>
+        {/* Header is always visible on every page */}
+        <Header />
+
+        <Routes>
+          <Route path="/"             element={<ProductList />}   />
+          <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/cart"         element={<Cart />}          />
+        </Routes>
+      </BrowserRouter>
+    </CartProvider>
   );
 }

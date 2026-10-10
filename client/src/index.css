@@ -157,3 +157,328 @@ a {
   max-width: 480px;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/*  NEW STYLES — added for cart feature                                        */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Site header ────────────────────────────────────────────────────────────── */
+.site-header {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 100;          /* float above page content when scrolling */
+}
+
+.header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-brand {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #111;
+  letter-spacing: -0.01em;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav-link {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #555;
+  transition: color 0.15s;
+}
+
+.nav-link:hover {
+  color: #2563eb;
+}
+
+/* ── Cart badge (item count shown on the nav link) ─────────────────────────── */
+.cart-nav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.cart-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #2563eb;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+/* ── Reusable button system ─────────────────────────────────────────────────── */
+/* Base */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, transform 0.1s;
+  text-decoration: none;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* Solid primary (blue) */
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+.btn-primary:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+/* Ghost (border only) */
+.btn-ghost {
+  background: transparent;
+  color: #555;
+  border: 1.5px solid #d1d5db;
+}
+.btn-ghost:hover {
+  background: #f3f4f6;
+  color: #111;
+}
+
+/* Remove (icon-sized, red) */
+.btn-remove {
+  background: transparent;
+  color: #9ca3af;
+  border: none;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+}
+.btn-remove:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+/* Full-width modifier */
+.btn-full {
+  width: 100%;
+}
+
+/* ── Add-to-cart button on ProductDetail ────────────────────────────────────── */
+.add-to-cart-btn {
+  align-self: flex-start;
+  padding: 0.75rem 1.75rem;
+  font-size: 1rem;
+}
+
+/* Green "Added!" confirmation state */
+.add-to-cart-btn.added {
+  background: #16a34a;
+}
+.add-to-cart-btn.added:hover {
+  background: #15803d;
+}
+
+/* "View Cart →" inline link that appears after adding */
+.view-cart-link {
+  color: #2563eb;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+.view-cart-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Cart page ─────────────────────────────────────────────────────────────── */
+
+/* Row: heading + "Clear all" button */
+.cart-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Cart item list ──────────────────────────────────────────────────────────── */
+.cart-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.cart-item {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+.cart-item-img {
+  width: 72px;
+  height: 96px;            /* 3:4 portrait ratio */
+  object-fit: cover;
+  border-radius: 6px;
+  background: #e8e8e8;
+  flex-shrink: 0;
+}
+
+.cart-item-info {
+  flex: 1;                  /* takes remaining horizontal space */
+  min-width: 0;             /* allows text to truncate properly */
+}
+
+.cart-item-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cart-item-price {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-top: 0.2rem;
+}
+
+/* ── Quantity stepper (+/−) ─────────────────────────────────────────────────── */
+.cart-item-qty {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.qty-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.qty-btn:hover {
+  background: #f3f4f6;
+}
+
+.qty-value {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* ── Line subtotal ──────────────────────────────────────────────────────────── */
+.cart-item-subtotal {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #111;
+  min-width: 64px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Order summary box ─────────────────────────────────────────────────────── */
+.cart-summary {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  max-width: 380px;
+  margin-left: auto;        /* pin to the right */
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cart-total-label {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.cart-total-price {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #111;
+}
+
+/* ── Empty cart state ──────────────────────────────────────────────────────── */
+.cart-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cart-empty-icon {
+  font-size: 3.5rem;
+}
+
+.cart-empty p {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.cart-empty-sub {
+  font-size: 0.95rem !important;
+  font-weight: 400 !important;
+  color: #6b7280;
+}
+
+.cart-empty .btn {
+  margin-top: 0.5rem;
+}
+
+/* ── Responsive tweaks for Cart page ──────────────────────────────────────── */
+@media (max-width: 600px) {
+  .cart-item {
+    flex-wrap: wrap;
+  }
+  .cart-item-subtotal {
+    order: 5;
+  }
+  .cart-summary {
+    max-width: 100%;
+  }
+}
