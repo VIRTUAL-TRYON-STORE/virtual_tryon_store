@@ -110,10 +110,10 @@ export default function Cart() {
       <div className="cart-summary">
         <p className="cart-total-label">Order Total</p>
         <p className="cart-total-price">${totalPrice.toFixed(2)}</p>
-        {/* Checkout button is intentionally disabled — not built yet */}
-        <button className="btn btn-primary btn-full" disabled>
-          Checkout (coming soon)
-        </button>
+        {/* Checkout button is now a Link to /checkout */}
+        <Link to="/checkout" className="btn btn-primary btn-full" id="proceed-to-checkout-btn">
+          Proceed to checkout &rarr;
+        </Link>
         <Link to="/" className="btn btn-ghost btn-full">
           ← Continue Shopping
         </Link>
