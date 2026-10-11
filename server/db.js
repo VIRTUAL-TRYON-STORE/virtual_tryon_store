@@ -29,6 +29,32 @@ const dbPromise = initSqlJs().then((SQL) => {
     );
   `);
 
+  // ── Orders tables ─────────────────────────────────────────────────────────
+  // orders holds one row per completed checkout. customer_* fields come from
+  // the form; total is calculated server-side (never trusted from the browser).
+  db.run(`
+    CREATE TABLE IF NOT EXISTS orders (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      customer_name  TEXT    NOT NULL,
+      customer_email TEXT    NOT NULL,
+      address        TEXT    NOT NULL,
+      total          REAL    NOT NULL,
+      created_at     TEXT    NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+
+  // order_items links each order to its products. unit_price is snapshotted
+  // at order time so a future price change doesn't alter historical orders.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS order_items (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id   INTEGER NOT NULL REFERENCES orders(id),
+      product_id INTEGER NOT NULL REFERENCES products(id),
+      quantity   INTEGER NOT NULL,
+      unit_price REAL    NOT NULL
+    );
+  `);
+
   // ALTER TABLE … ADD COLUMN is the standard way to add a column to an
   // existing table in SQLite. It fails silently if the column is already
   // there (we wrap each in a try/catch so existing DBs aren't broken).
