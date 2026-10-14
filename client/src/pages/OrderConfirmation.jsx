@@ -12,6 +12,11 @@ import { Link, useParams } from "react-router-dom";
 // This page fetches GET /api/orders/:id on mount and shows a thank-you message
 // with the full order details.
 //
+// Visual redesign:
+//   • Whole page wrapped in .confirm-card (max-width 720px, centred)
+//   • Animated green checkmark hero (.order-hero-icon)
+//   • Two-column sub-layout: items card left, delivery details card right
+//   • .confirm-actions row with centred CTA
 export default function OrderConfirmation() {
   const { id } = useParams(); // grab :id from /order/:id
 
@@ -56,72 +61,87 @@ export default function OrderConfirmation() {
   if (error) {
     return (
       <div className="page">
-        <p className="status-msg error">{error}</p>
-        <Link to="/" className="btn btn-primary" style={{ display: "inline-flex", marginTop: "1rem" }}>
-          Back to Shop
-        </Link>
+        <div className="confirm-card">
+          <p className="status-msg error">{error}</p>
+          <div className="confirm-actions">
+            <Link to="/" className="btn btn-primary" id="back-to-shop-btn">
+              Back to Shop
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="page">
-      {/* Thank-you hero */}
-      <div className="order-hero">
-        <div className="order-hero-icon">&#10003;</div>
-        <h1>Thank you, {order.customer_name.split(" ")[0]}!</h1>
-        <p className="subtitle">
-          Your order <strong>#{order.id}</strong> has been placed successfully.
-        </p>
-      </div>
+      {/* ── Centred confirmation card ────────────────────────────────────── */}
+      <div className="confirm-card">
 
-      <div className="order-layout">
+        {/* Thank-you hero */}
+        <div className="order-hero">
+          <div className="order-hero-icon" aria-hidden="true">&#10003;</div>
+          <h1>Thank you, {order.customer_name.split(" ")[0]}!</h1>
+          <p className="subtitle" style={{ marginBottom: 0 }}>
+            Your order <strong>#{order.id}</strong> has been placed successfully.
+            We'll send a confirmation to <strong>{order.customer_email}</strong>.
+          </p>
+        </div>
 
-        {/* Order items */}
-        <section className="order-items-card">
-          <h2 className="checkout-section-title">Items ordered</h2>
-          <ul className="checkout-item-list">
-            {order.items.map((item) => (
-              <li key={item.id} className="checkout-item">
-                <div className="checkout-item-info" style={{ flex: 1 }}>
-                  <p className="checkout-item-name">{item.product_name}</p>
-                  <p className="checkout-item-meta">
-                    Qty {item.quantity} &times; ${Number(item.unit_price).toFixed(2)}
+        {/* Two-column: items ordered + delivery details */}
+        <div className="order-layout">
+
+          {/* Items ordered */}
+          <section className="order-items-card">
+            <h2 className="checkout-section-title">Items ordered</h2>
+            <ul className="checkout-item-list">
+              {order.items.map((item) => (
+                <li key={item.id} className="checkout-item">
+                  <div className="checkout-item-info" style={{ flex: 1 }}>
+                    <p className="checkout-item-name">{item.product_name}</p>
+                    <p className="checkout-item-meta">
+                      Qty {item.quantity} &times; ${Number(item.unit_price).toFixed(2)}
+                    </p>
+                  </div>
+                  <p className="checkout-item-subtotal">
+                    ${(item.quantity * item.unit_price).toFixed(2)}
                   </p>
-                </div>
-                <p className="checkout-item-subtotal">
-                  ${(item.quantity * item.unit_price).toFixed(2)}
-                </p>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
 
-          <div className="checkout-total-row">
-            <span>Order total</span>
-            <span className="checkout-total-price">${Number(order.total).toFixed(2)}</span>
-          </div>
-        </section>
+            <div className="checkout-total-row">
+              <span>Order total</span>
+              <span className="checkout-total-price">
+                ${Number(order.total).toFixed(2)}
+              </span>
+            </div>
+          </section>
 
-        {/* Delivery details */}
-        <aside className="order-details-card">
-          <h2 className="checkout-section-title">Delivery details</h2>
-          <dl className="order-detail-list">
-            <dt>Name</dt>
-            <dd>{order.customer_name}</dd>
-            <dt>Email</dt>
-            <dd>{order.customer_email}</dd>
-            <dt>Address</dt>
-            <dd style={{ whiteSpace: "pre-line" }}>{order.address}</dd>
-            <dt>Placed at</dt>
-            <dd>{new Date(order.created_at + "Z").toLocaleString()}</dd>
-          </dl>
-        </aside>
-      </div>
+          {/* Delivery details */}
+          <aside className="order-details-card">
+            <h2 className="checkout-section-title">Delivery details</h2>
+            <dl className="order-detail-list">
+              <dt>Name</dt>
+              <dd>{order.customer_name}</dd>
+              <dt>Email</dt>
+              <dd>{order.customer_email}</dd>
+              <dt>Address</dt>
+              <dd style={{ whiteSpace: "pre-line" }}>{order.address}</dd>
+              <dt>Placed at</dt>
+              <dd>{new Date(order.created_at + "Z").toLocaleString()}</dd>
+            </dl>
+          </aside>
 
-      <div style={{ marginTop: "2rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-        <Link to="/" className="btn btn-primary" id="continue-shopping-btn">
-          Continue shopping
-        </Link>
+        </div>
+
+        {/* CTA */}
+        <div className="confirm-actions">
+          <Link to="/" className="btn btn-primary" id="continue-shopping-btn">
+            Continue shopping
+          </Link>
+        </div>
+
       </div>
     </div>
   );

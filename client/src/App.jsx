@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "./context/CartContext.jsx";
 import Header            from "./components/Header.jsx";
+import Footer            from "./components/Footer.jsx";
 import ProductList       from "./pages/ProductList.jsx";
 import ProductDetail     from "./pages/ProductDetail.jsx";
 import Cart              from "./pages/Cart.jsx";
@@ -37,6 +38,9 @@ export default function App() {
           <Route path="/order/:id"    element={<OrderConfirmation />} />
           <Route path="/tryon-test"   element={<TryOn clothingImage="/shirts/shirt.png" showControls />} />
         </Routes>
+
+        {/* Footer is always visible on every page */}
+        <Footer />
       </BrowserRouter>
     </CartProvider>
   );

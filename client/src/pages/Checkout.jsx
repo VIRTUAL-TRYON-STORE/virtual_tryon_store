@@ -21,6 +21,11 @@ import { useCartContext } from "../context/CartContext.jsx";
 //    The POST response may return a 400 with { error: "..." }. We read that
 //    message and put it in `serverError` state, then render it in the UI.
 //
+// Visual redesign:
+//   • Two-column layout (.checkout-layout): form card left, sticky summary right
+//   • Demo notice styled as a small amber banner
+//   • Form labels uppercase-spaced, inputs with green focus ring
+//   • Server errors rendered as a styled red alert banner
 export default function Checkout() {
   const { items, totalPrice, clearCart } = useCartContext();
   const navigate = useNavigate();
@@ -39,8 +44,8 @@ export default function Checkout() {
     return (
       <div className="page">
         <div className="cart-empty">
-          <span className="cart-empty-icon">🛍️</span>
-          <p>Your cart is empty!</p>
+          <span className="cart-empty-icon" aria-hidden="true">🛍️</span>
+          <p>Your bag is empty!</p>
           <p className="cart-empty-sub">
             Add some items before checking out.
           </p>
@@ -99,23 +104,27 @@ export default function Checkout() {
     }
   }
 
+  const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
+
   return (
     <div className="page">
       <h1>Checkout</h1>
-      <p className="subtitle">Review your order and enter your details below.</p>
+      <p className="subtitle">
+        {itemCount} {itemCount === 1 ? "item" : "items"} — review your order and enter your details below.
+      </p>
 
       {/* Demo payment notice */}
       <div className="demo-notice" role="note">
-        <span className="demo-notice-icon">🔒</span>
+        <span className="demo-notice-icon" aria-hidden="true">🔒</span>
         <span>
-          <strong>Demo mode — no payment is taken.</strong> This is a
-          prototype. Nothing will be charged. Enter any details you like.
+          <strong>Demo mode — no payment is taken.</strong>{" "}
+          This is a prototype. Nothing will be charged. Enter any details you like.
         </span>
       </div>
 
       <div className="checkout-layout">
 
-        {/* Customer details form */}
+        {/* ── LEFT — Customer details form ──────────────────────────────── */}
         <form
           className="checkout-form"
           onSubmit={handleSubmit}
@@ -134,6 +143,7 @@ export default function Checkout() {
               placeholder="Jane Smith"
               required
               disabled={loading}
+              autoComplete="name"
             />
           </div>
 
@@ -147,6 +157,7 @@ export default function Checkout() {
               placeholder="jane@example.com"
               required
               disabled={loading}
+              autoComplete="email"
             />
           </div>
 
@@ -160,6 +171,7 @@ export default function Checkout() {
               rows={3}
               required
               disabled={loading}
+              autoComplete="street-address"
             />
           </div>
 
@@ -176,15 +188,15 @@ export default function Checkout() {
             disabled={loading}
             id="place-order-btn"
           >
-            {loading ? "Placing order\u2026" : "Place order"}
+            {loading ? "Placing order…" : "Place order"}
           </button>
 
           <Link to="/cart" className="btn btn-ghost btn-full">
-            &larr; Back to cart
+            &larr; Back to bag
           </Link>
         </form>
 
-        {/* Order summary */}
+        {/* ── RIGHT — Sticky order summary ──────────────────────────────── */}
         <aside className="checkout-summary">
           <h2 className="checkout-section-title">Order summary</h2>
 
@@ -214,6 +226,7 @@ export default function Checkout() {
             <span className="checkout-total-price">${totalPrice.toFixed(2)}</span>
           </div>
         </aside>
+
       </div>
     </div>
   );
