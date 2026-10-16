@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SQLite Database Viewer — store.db</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-card: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --border: #475569;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 2rem;
+      line-height: 1.5;
+    }
+    .header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .badge {
+      background: var(--surface-card);
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .table-container {
+      background: var(--surface);
+      border-radius: 0.75rem;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    th {
+      background: var(--surface-card);
+      padding: 0.85rem 1rem;
+      color: var(--accent);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid rgba(71, 85, 105, 0.4);
+      color: var(--text);
+    }
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .thumb {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 0.375rem;
+      border: 1px solid var(--border);
+    }
+    .stats-card {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-box {
+      background: var(--surface);
+      padding: 1.25rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border);
+    }
+    .stat-box .title { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; }
+    .stat-box .val { font-size: 1.5rem; font-weight: 700; color: var(--text); margin-top: 0.25rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>Database Viewer: store.db</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Live inspection of server/data/store.db (SQLite)</p>
+    </div>
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+      <span class="badge">SQLite 3</span>
+      <span class="badge">3 Tables</span>
+    </div>
+  </div>
+
+  <div class="stats-card">
+    <div class="stat-box">
+      <div class="title">Products</div>
+      <div class="val">8 Items</div>
+    </div>
+    <div class="stat-box">
+      <div class="title">Total Orders</div>
+      <div class="val">2 Orders</div>
+    </div>
+    <div class="stat-box">
+      <div class="title">Order Items</div>
+      <div class="val">2 Line Items</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('products')">products (8)</button>
+    <button class="tab-btn" onclick="showTab('orders')">orders (2)</button>
+    <button class="tab-btn" onclick="showTab('order_items')">order_items (2)</button>
+  </div>
+
+  <div id="content"></div>
+
+  <script>
+    const data = {"products":[{"id":1,"name":"Classic White Tee","price":29.99,"description":"A timeless 100% organic cotton crew-neck tee. Relaxed fit, pre-shrunk, available in S–XXL.","image_url":"https://picsum.photos/seed/tee-white/600/700"},{"id":2,"name":"Slim Fit Chinos","price":59.99,"description":"Tapered slim-fit chinos in stretch twill. Perfect for smart-casual looks.","image_url":"https://picsum.photos/seed/chinos/600/700"},{"id":3,"name":"Leather Bomber Jacket","price":149.99,"description":"Genuine full-grain leather bomber with ribbed cuffs and a YKK zip. A wardrobe staple.","image_url":"https://picsum.photos/seed/bomber/600/700"},{"id":4,"name":"Floral Midi Dress","price":79.99,"description":"Lightweight viscose midi dress with an all-over floral print. Fully lined, back zip.","image_url":"https://picsum.photos/seed/floraldress/600/700"},{"id":5,"name":"Knit Beanie","price":19.99,"description":"Super-soft merino wool beanie with a cuffed edge. One size fits most.","image_url":"https://picsum.photos/seed/beanie/600/700"},{"id":6,"name":"Running Sneakers","price":89.99,"description":"Lightweight mesh sneakers with a cushioned EVA sole. Breathable, gender-neutral design.","image_url":"https://picsum.photos/seed/sneakers/600/700"},{"id":7,"name":"Oversized Hoodie","price":64.99,"description":"Brushed fleece oversized hoodie with a kangaroo pocket and adjustable drawcord.","image_url":"https://picsum.photos/seed/hoodie/600/700"},{"id":8,"name":"Tailored Blazer","price":119.99,"description":"Single-breasted slim blazer in stretch ponte fabric. Works as a suit or separate.","image_url":"https://picsum.photos/seed/blazer/600/700"}],"orders":[{"id":1,"customer_name":"fahad","customer_email":"fahad@gmail.com","address":"hyderabad India","total":89.97,"created_at":"2026-10-11 18:12:34"},{"id":2,"customer_name":"Jane Smith","customer_email":"jane@example.com","address":"123 Main St","total":59.98,"created_at":"2026-10-15 13:12:47"}],"order_items":[{"id":1,"order_id":1,"product_id":1,"quantity":3,"unit_price":29.99},{"id":2,"order_id":2,"product_id":1,"quantity":2,"unit_price":29.99}]};
+
+    function renderTable(tableName) {
+      const rows = data[tableName];
+      if (!rows || rows.length === 0) {
+        return '<p style="padding: 2rem; color: var(--text-muted);">No rows found in ' + tableName + '</p>';
+      }
+      const cols = Object.keys(rows[0]);
+      let html = '<div class="table-container"><table><thead><tr>';
+      cols.forEach(c => html += '<th>' + c + '</th>');
+      html += '</tr></thead><tbody>';
+
+      rows.forEach(r => {
+        html += '<tr>';
+        cols.forEach(c => {
+          let val = r[c];
+          if (c === 'image_url' && val) {
+            html += '<td><img class="thumb" src="' + val + '" alt="thumb" onerror="this.style.display=\'none\'"> <span style="font-size:0.8rem; color:var(--text-muted);">' + val + '</span></td>';
+          } else if (c === 'price' || c === 'total' || c === 'unit_price') {
+            html += '<td style="font-weight:600; color:var(--accent);">$ ' + Number(val).toFixed(2) + '</td>';
+          } else {
+            html += '<td>' + (val !== null && val !== undefined ? val : '<em style="color:#64748b;">null</em>') + '</td>';
+          }
+        });
+        html += '</tr>';
+      });
+
+      html += '</tbody></table></div>';
+      return html;
+    }
+
+    function showTab(tableName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.startsWith(tableName));
+      });
+      document.getElementById('content').innerHTML = renderTable(tableName);
+    }
+
+    showTab('products');
+  </script>
+</body>
+</html>

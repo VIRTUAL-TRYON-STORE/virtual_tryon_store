@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "customer_name": "fahad",
+    "customer_email": "fahad@gmail.com",
+    "address": "hyderabad India",
+    "total": 89.97,
+    "created_at": "2026-10-11 18:12:34"
+  },
+  {
+    "id": 2,
+    "customer_name": "Jane Smith",
+    "customer_email": "jane@example.com",
+    "address": "123 Main St",
+    "total": 59.98,
+    "created_at": "2026-10-15 13:12:47"
+  }
+]
