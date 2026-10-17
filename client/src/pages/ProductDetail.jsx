@@ -6,15 +6,22 @@ import TryOn from "../tryon/TryOn.jsx";
 // ── ProductDetail page ────────────────────────────────────────────────────────
 // Mounted when the URL is "/products/:id".
 //
-// Virtual Try-On integration:
-//   - "Try it on" button only rendered when product.tryon_image_url exists.
-//   - TryOn component mounts in place on click (starts camera feed only on demand).
-//   - Unmounting via the Close button terminates all webcam tracks and MediaPipe.
-//   - "Adjust fit" toggle controls showControls for slider tuning.
-//   - "Add to Cart" remains fully active while trying on garments.
+// Layout (new two-column):
+//   Desktop  — LEFT column = product image card (or live TryOn camera card when
+//              Try-On is active). RIGHT column = back link, name, price,
+//              description, action buttons.
+//   Mobile   — single column; media stacks above the info block.
+//
+// Virtual Try-On integration (logic UNCHANGED):
+//   • "Try it on" button only rendered when product.tryon_image_url exists.
+//   • TryOn mounts ONLY after the button is clicked (camera off by default).
+//   • Unmounting via the Close button terminates all webcam tracks and MediaPipe.
+//   • "Adjust fit" toggle controls showControls for slider tuning.
+//   • "Add to Cart" remains fully active while try-on is open.
+//   • On desktop the camera card replaces the product image in the LEFT column.
 export default function ProductDetail() {
-  const { id } = useParams();          // reads ":id" from the URL
-  const { addToCart } = useCartContext(); // pulls addToCart from the cart context
+  const { id } = useParams();
+  const { addToCart } = useCartContext();
 
   const [product, setProduct]           = useState(null);
   const [loading, setLoading]           = useState(true);
@@ -22,11 +29,10 @@ export default function ProductDetail() {
   const [isTryingOn, setIsTryingOn]     = useState(false);
   const [showControls, setShowControls] = useState(false);
 
-  // Brief "Added!" feedback so the user knows their click was registered.
-  // We reset it to false after 1.5 s with a setTimeout inside useEffect.
+  // Brief "Added!" feedback — reset after 1.5 s
   const [added, setAdded] = useState(false);
 
-  // Re-fetch whenever the id in the URL changes (the [id] dependency array).
+  // Re-fetch whenever :id changes
   useEffect(() => {
     setIsTryingOn(false);
     setShowControls(false);
@@ -35,7 +41,7 @@ export default function ProductDetail() {
 
     fetch(`/api/products/${id}`)
       .then((res) => {
-        if (res.status === 404) throw new Error("Product not found");
+        if (res.status === 404) throw new Error("not-found");
         if (!res.ok)            throw new Error(`Server error: ${res.status}`);
         return res.json();
       })
@@ -49,33 +55,91 @@ export default function ProductDetail() {
       });
   }, [id]);
 
-  // ── handleAddToCart ────────────────────────────────────────────────────────
-  // Calls addToCart with the full product object, then briefly shows "Added!"
-  // text on the button so the user has clear visual feedback.
   function handleAddToCart() {
     addToCart(product);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   }
 
-  if (loading) return <p className="status-msg">Loading product…</p>;
-  if (error)   return <p className="status-msg error">Error: {error}</p>;
+  // ── Loading skeleton ───────────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="page">
+        <div className="pd-layout">
+          {/* Left column skeleton — mimics the image card */}
+          <div className="pd-media">
+            <div className="pd-img-card skeleton" style={{ aspectRatio: "4/5", borderRadius: "var(--radius-xl)" }} />
+          </div>
+
+          {/* Right column skeleton — mimics the info block */}
+          <div className="pd-info">
+            <div className="skeleton skeleton-line short" style={{ height: "12px", width: "120px", marginBottom: "var(--space-6)" }} />
+            <div className="skeleton skeleton-line medium" style={{ height: "40px", marginBottom: "var(--space-3)" }} />
+            <div className="skeleton skeleton-line short" style={{ height: "28px", width: "100px", marginBottom: "var(--space-5)" }} />
+            <div className="skeleton" style={{ height: "96px", borderRadius: "var(--radius-md)", marginBottom: "var(--space-5)" }} />
+            <div style={{ display: "flex", gap: "var(--space-3)" }}>
+              <div className="skeleton" style={{ height: "46px", width: "148px", borderRadius: "var(--radius-md)" }} />
+              <div className="skeleton" style={{ height: "46px", width: "120px", borderRadius: "var(--radius-md)" }} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Error / Not-found state ─────────────────────────────────────────────────
+  if (error) {
+    const isNotFound = error === "not-found";
+    return (
+      <div className="page">
+        <div className="pd-not-found">
+          <span className="pd-not-found-icon" aria-hidden="true">
+            {isNotFound ? "🕵️" : "⚠️"}
+          </span>
+          <h1 className="pd-not-found-heading">
+            {isNotFound ? "Product not found" : "Something went wrong"}
+          </h1>
+          <p className="pd-not-found-sub">
+            {isNotFound
+              ? "This product doesn't exist or may have been removed from the catalogue."
+              : error}
+          </p>
+          <Link to="/" className="btn btn-primary" id="back-to-collection-btn">
+            ← Back to collection
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const hasTryOn = Boolean(product.tryon_image_url);
 
   return (
     <div className="page">
-      {/* Back link — navigates to the list without a full reload */}
-      <Link to="/" className="back-link">← Back to collection</Link>
+      {/*
+        pd-layout — two-column grid on desktop; single column on mobile.
+        When isTryingOn is true the LEFT column renders the live camera card
+        instead of the static product image. The modifier class pd-tryon-active
+        can be used in CSS to widen the left column if needed.
+      */}
+      <div className={`pd-layout${isTryingOn ? " pd-tryon-active" : ""}`}>
 
-      <div className={`detail-card${isTryingOn ? " is-tryon-active" : ""}`}>
-        {/* Media display: either the static product image or the live TryOn view */}
-        <div className="detail-media">
+        {/* ── LEFT — Media column ─────────────────────────────────────────── */}
+        <div className="pd-media">
           {isTryingOn ? (
-            <div className="tryon-panel">
-              <div className="tryon-panel-header">
+            /*
+              Camera panel — replaces the product image on desktop while
+              Try-On is active. The TryOn component is mounted here so the
+              webcam feed appears in the left column exactly where the image was.
+            */
+            <div className="pd-tryon-card">
+              {/* Header: Live badge · Adjust fit toggle · Close */}
+              <div className="pd-tryon-header">
                 <span className="tryon-status-badge">
                   <span className="tryon-status-dot" />
                   Live Try-On
                 </span>
+
                 <label className="tryon-fit-toggle" htmlFor="adjust-fit-toggle">
                   <input
                     type="checkbox"
@@ -85,6 +149,7 @@ export default function ProductDetail() {
                   />
                   Adjust fit
                 </label>
+
                 <button
                   type="button"
                   className="btn btn-ghost btn-close-tryon"
@@ -96,44 +161,56 @@ export default function ProductDetail() {
                 </button>
               </div>
 
+              {/* Camera feed */}
               <div className="tryon-view-container">
                 <TryOn
                   clothingImage={product.tryon_image_url}
                   showControls={showControls}
                 />
               </div>
+
+              {/* Tip notice below the feed */}
+              <div className="tryon-tip" role="note">
+                <span className="tryon-tip-icon">💡</span>
+                <p className="tryon-tip-text">
+                  Stand back so both shoulders are visible, and allow the camera.
+                </p>
+              </div>
             </div>
           ) : (
-            <img
-              src={product.image_url}
-              alt={product.name}
-              className="detail-img"
-            />
+            /* Static product image card */
+            <div className="pd-img-card">
+              <img
+                src={product.image_url}
+                alt={product.name}
+                className="pd-img"
+              />
+            </div>
           )}
         </div>
 
-        <div className="detail-info">
-          <h1 className="detail-name">{product.name}</h1>
-          <p className="detail-price">${product.price.toFixed(2)}</p>
+        {/* ── RIGHT — Info column ─────────────────────────────────────────── */}
+        <div className="pd-info">
+          {/* Back link at the very top of the info block */}
+          <Link to="/" className="back-link" id="back-to-products-link">
+            ← Back to collection
+          </Link>
 
-          {/* Short tip displayed next to the try-on when open */}
-          {isTryingOn && (
-            <div className="tryon-tip" role="note">
-              <span className="tryon-tip-icon">💡</span>
-              <p className="tryon-tip-text">
-                Stand back so both shoulders are visible, and allow the camera.
-              </p>
-            </div>
-          )}
+          <h1 className="detail-name">{product.name}</h1>
+
+          <p className="detail-price">${product.price.toFixed(2)}</p>
 
           <p className="detail-description">{product.description}</p>
 
-          {/* ── Action buttons ─────────────────────────────────────────
-              Add to cart remains accessible while try-on is active.
-              Try it on button is only shown if product has tryon_image_url.
+          {/* ── Action buttons ───────────────────────────────────────────────
+              Add to Cart is always active.
+              Try it on only shown when product has tryon_image_url and camera
+              is not open. Close Try-On appears as a secondary action in this
+              column while try-on is running.
           */}
           <div className="detail-actions">
             <button
+              type="button"
               className={`btn btn-primary add-to-cart-btn${added ? " added" : ""}`}
               onClick={handleAddToCart}
               id="add-to-cart-btn"
@@ -141,7 +218,7 @@ export default function ProductDetail() {
               {added ? "✓ Added!" : "Add to Cart"}
             </button>
 
-            {Boolean(product.tryon_image_url) && !isTryingOn && (
+            {hasTryOn && !isTryingOn && (
               <button
                 type="button"
                 className="btn btn-tryon"
@@ -172,20 +249,22 @@ export default function ProductDetail() {
                 type="button"
                 className="btn btn-ghost btn-close-tryon-alt"
                 onClick={() => setIsTryingOn(false)}
+                id="close-tryon-alt-btn"
               >
                 Close Try-On
               </button>
             )}
           </div>
 
-          {/* Quick link to cart after adding */}
+          {/* Quick "View Cart →" link shown briefly after adding */}
           {added && (
             <Link to="/cart" className="view-cart-link">
               View Cart →
             </Link>
           )}
         </div>
-      </div>
+
+      </div>{/* /pd-layout */}
     </div>
   );
 }
