@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useCartContext } from "../context/CartContext.jsx";
 import TryOn from "../tryon/TryOn.jsx";
+import ProductCard from "../components/ProductCard.jsx";
 
 // ── ProductDetail page ────────────────────────────────────────────────────────
 // Mounted when the URL is "/products/:id".
@@ -24,6 +25,7 @@ export default function ProductDetail() {
   const { addToCart } = useCartContext();
 
   const [product, setProduct]           = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
   const [isTryingOn, setIsTryingOn]     = useState(false);
@@ -34,11 +36,14 @@ export default function ProductDetail() {
 
   // Re-fetch whenever :id changes
   useEffect(() => {
+    // When the user clicks a related product, scroll to top and reset try-on state
+    window.scrollTo(0, 0);
     setIsTryingOn(false);
     setShowControls(false);
     setLoading(true);
     setError(null);
 
+    // Fetch the current product details
     fetch(`/api/products/${id}`)
       .then((res) => {
         if (res.status === 404) throw new Error("not-found");
@@ -52,6 +57,27 @@ export default function ProductDetail() {
       .catch((err) => {
         setError(err.message);
         setLoading(false);
+      });
+
+    // Fetch "You may also like" related products (up to 4 other items, try-on items first)
+    fetch("/api/products")
+      .then((res) => {
+        if (!res.ok) return [];
+        return res.json();
+      })
+      .then((all) => {
+        const others = all.filter((p) => String(p.id) !== String(id));
+        others.sort((a, b) => {
+          const aHas = Boolean(a.tryon_image_url);
+          const bHas = Boolean(b.tryon_image_url);
+          if (aHas && !bHas) return -1;
+          if (!aHas && bHas) return 1;
+          return 0;
+        });
+        setRelatedProducts(others.slice(0, 4));
+      })
+      .catch(() => {
+        setRelatedProducts([]);
       });
   }, [id]);
 
@@ -265,6 +291,27 @@ export default function ProductDetail() {
         </div>
 
       </div>{/* /pd-layout */}
+
+      {/* ── Related products: "You may also like" ──────────────────────── */}
+      {relatedProducts.length > 0 && (
+        <section className="related-section" aria-labelledby="related-heading">
+          <div className="related-header">
+            <h2 id="related-heading" className="related-title">
+              You may also like
+            </h2>
+            <span className="related-sub">
+              Curated pieces from our collection
+            </span>
+          </div>
+
+          <div className="product-grid">
+            {relatedProducts.map((relProduct) => (
+              <ProductCard key={relProduct.id} product={relProduct} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
+
