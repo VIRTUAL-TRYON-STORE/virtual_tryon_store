@@ -471,7 +471,8 @@ const st = {
   viewport: {
     position: "relative",
     width: CANVAS_W,
-    height: CANVAS_H,
+    maxWidth: "100%",
+    aspectRatio: "4 / 3",
     background: "#111",
     overflow: "hidden",
   },
@@ -479,6 +480,8 @@ const st = {
     position: "absolute",
     top: 0,
     left: 0,
+    width: "100%",
+    height: "100%",
     // Only the video is mirrored; the canvas is NOT flipped.
     transform: "scaleX(-1)",
   },
@@ -486,6 +489,8 @@ const st = {
     position: "absolute",
     top: 0,
     left: 0,
+    width: "100%",
+    height: "100%",
   },
   // Shared base for both overlays
   overlayBase: {
@@ -557,6 +562,7 @@ const st = {
     gap: 6,
     marginTop: 14,
     width: CANVAS_W,
+    maxWidth: "100%",
     fontFamily: "sans-serif",
     fontSize: 14,
     lineHeight: 2,

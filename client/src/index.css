@@ -787,8 +787,21 @@ ul, ol { list-style: none; }
   border: 1px solid var(--color-border);
   padding: var(--space-10);
 }
+@media (max-width: 960px) {
+  .detail-card {
+    flex-direction: column;
+    padding: var(--space-8);
+  }
+}
 @media (max-width: 640px) {
-  .detail-card { flex-direction: column; padding: var(--space-6); }
+  .detail-card { padding: var(--space-6); }
+}
+
+.detail-media {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
 }
 
 .detail-img {
@@ -806,6 +819,7 @@ ul, ol { list-style: none; }
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  flex: 1;
 }
 
 .detail-name {
@@ -827,6 +841,170 @@ ul, ol { list-style: none; }
   color: var(--color-text-muted);
   max-width: 480px;
   line-height: 1.7;
+}
+
+.detail-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+}
+
+/* ── Virtual Try-On styles ─────────────────────────────────────────────────── */
+.btn-tryon {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.8rem 1.6rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-accent);
+  background: var(--color-surface-alt);
+  color: var(--color-accent-dark);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background var(--transition-normal),
+    color var(--transition-normal),
+    border-color var(--transition-normal),
+    transform var(--transition-fast),
+    box-shadow var(--transition-normal);
+  white-space: nowrap;
+}
+.btn-tryon:hover {
+  background: var(--color-accent-pale);
+  color: var(--color-accent-dark);
+  border-color: var(--color-accent-dark);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+.btn-tryon:active {
+  transform: scale(0.98);
+}
+.tryon-btn-icon {
+  flex-shrink: 0;
+}
+
+.btn-close-tryon-alt {
+  padding: 0.8rem 1.4rem;
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tryon-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 640px;
+}
+
+.tryon-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 var(--space-1);
+}
+
+.tryon-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent-dark);
+  background: var(--color-accent-pale);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+}
+
+.tryon-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-light);
+  animation: tryon-live-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes tryon-live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+.tryon-fit-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+.tryon-fit-toggle input[type="checkbox"] {
+  accent-color: var(--color-accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+.tryon-fit-toggle:hover {
+  color: var(--color-text);
+}
+
+.btn-close-tryon {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+}
+.btn-close-tryon:hover {
+  color: var(--color-danger);
+  background: var(--color-danger-pale);
+  border-color: transparent;
+}
+
+.tryon-view-container {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+  background: #111;
+  max-width: 100%;
+}
+
+.tryon-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-alt);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  box-shadow: var(--shadow-xs);
+  max-width: 480px;
+}
+.tryon-tip-icon {
+  font-size: 1.15rem;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+.tryon-tip-text {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 
