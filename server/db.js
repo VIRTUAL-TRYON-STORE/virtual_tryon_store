@@ -21,11 +21,12 @@ const dbPromise = initSqlJs().then((SQL) => {
   // safe to re-run on every server start.
   db.run(`
     CREATE TABLE IF NOT EXISTS products (
-      id          INTEGER PRIMARY KEY AUTOINCREMENT,
-      name        TEXT    NOT NULL,
-      price       REAL    NOT NULL,
-      description TEXT    NOT NULL DEFAULT '',
-      image_url   TEXT    NOT NULL DEFAULT ''
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      name            TEXT    NOT NULL,
+      price           REAL    NOT NULL,
+      description     TEXT    NOT NULL DEFAULT '',
+      image_url       TEXT    NOT NULL DEFAULT '',
+      tryon_image_url TEXT
     );
   `);
 
@@ -68,6 +69,16 @@ const dbPromise = initSqlJs().then((SQL) => {
   addColumnIfMissing("description", "TEXT", "");
   addColumnIfMissing("image_url",   "TEXT", "");
 
+  // ── tryon_image_url migration ─────────────────────────────────────────────
+  // Check with PRAGMA table_info(products) and run ALTER TABLE only if missing.
+  const tableInfoResult = db.exec("PRAGMA table_info(products);");
+  const existingCols = tableInfoResult.length > 0
+    ? tableInfoResult[0].values.map((row) => row[1])
+    : [];
+  if (!existingCols.includes("tryon_image_url")) {
+    db.run("ALTER TABLE products ADD COLUMN tryon_image_url TEXT;");
+  }
+
   // ── Seed data ─────────────────────────────────────────────────────────────
   // Only seed when the table is empty so we don't duplicate rows on restart.
   const isEmpty = db.exec("SELECT COUNT(*) AS n FROM products;")[0].values[0][0] === 0;
@@ -79,61 +90,87 @@ const dbPromise = initSqlJs().then((SQL) => {
         name: "Classic White Tee",
         price: 29.99,
         description: "A timeless 100% organic cotton crew-neck tee. Relaxed fit, pre-shrunk, available in S–XXL.",
-        image_url: "https://picsum.photos/seed/tee-white/600/700",
+        image_url: "/garments/tee.png",
+        tryon_image_url: "/garments/tee.png",
       },
       {
         name: "Slim Fit Chinos",
         price: 59.99,
         description: "Tapered slim-fit chinos in stretch twill. Perfect for smart-casual looks.",
         image_url: "https://picsum.photos/seed/chinos/600/700",
+        tryon_image_url: null,
       },
       {
         name: "Leather Bomber Jacket",
         price: 149.99,
         description: "Genuine full-grain leather bomber with ribbed cuffs and a YKK zip. A wardrobe staple.",
-        image_url: "https://picsum.photos/seed/bomber/600/700",
+        image_url: "/garments/bomber.png",
+        tryon_image_url: "/garments/bomber.png",
       },
       {
         name: "Floral Midi Dress",
         price: 79.99,
         description: "Lightweight viscose midi dress with an all-over floral print. Fully lined, back zip.",
         image_url: "https://picsum.photos/seed/floraldress/600/700",
+        tryon_image_url: null,
       },
       {
         name: "Knit Beanie",
         price: 19.99,
         description: "Super-soft merino wool beanie with a cuffed edge. One size fits most.",
         image_url: "https://picsum.photos/seed/beanie/600/700",
+        tryon_image_url: null,
       },
       {
         name: "Running Sneakers",
         price: 89.99,
         description: "Lightweight mesh sneakers with a cushioned EVA sole. Breathable, gender-neutral design.",
         image_url: "https://picsum.photos/seed/sneakers/600/700",
+        tryon_image_url: null,
       },
       {
         name: "Oversized Hoodie",
         price: 64.99,
         description: "Brushed fleece oversized hoodie with a kangaroo pocket and adjustable drawcord.",
-        image_url: "https://picsum.photos/seed/hoodie/600/700",
+        image_url: "/garments/hoodie.png",
+        tryon_image_url: "/garments/hoodie.png",
       },
       {
         name: "Tailored Blazer",
         price: 119.99,
         description: "Single-breasted slim blazer in stretch ponte fabric. Works as a suit or separate.",
-        image_url: "https://picsum.photos/seed/blazer/600/700",
+        image_url: "/garments/blazer.png",
+        tryon_image_url: "/garments/blazer.png",
       },
     ];
 
     // sql.js uses prepared statements the same way SQLite does.
     const stmt = db.prepare(
-      "INSERT INTO products (name, price, description, image_url) VALUES (?, ?, ?, ?)"
+      "INSERT INTO products (name, price, description, image_url, tryon_image_url) VALUES (?, ?, ?, ?, ?)"
     );
-    products.forEach(({ name, price, description, image_url }) => {
-      stmt.run([name, price, description, image_url]);
+    products.forEach(({ name, price, description, image_url, tryon_image_url }) => {
+      stmt.run([name, price, description, image_url, tryon_image_url || null]);
     });
     stmt.free(); // always free prepared statements when done
   }
+
+  // ── Idempotent update on startup ──────────────────────────────────────────
+  // For the four try-on garments, ensure image_url and tryon_image_url are set
+  // to their garment file. Matched by exact name and id from seed data.
+  const tryonProducts = [
+    { id: 1, name: "Classic White Tee", garment: "/garments/tee.png" },
+    { id: 3, name: "Leather Bomber Jacket", garment: "/garments/bomber.png" },
+    { id: 7, name: "Oversized Hoodie", garment: "/garments/hoodie.png" },
+    { id: 8, name: "Tailored Blazer", garment: "/garments/blazer.png" },
+  ];
+
+  const updateStmt = db.prepare(
+    "UPDATE products SET image_url = ?, tryon_image_url = ? WHERE name = ? OR id = ?;"
+  );
+  tryonProducts.forEach(({ id, name, garment }) => {
+    updateStmt.run([garment, garment, name, id]);
+  });
+  updateStmt.free();
 
   // ── Persist helper ────────────────────────────────────────────────────────
   // Call this after every write so changes survive server restarts.
