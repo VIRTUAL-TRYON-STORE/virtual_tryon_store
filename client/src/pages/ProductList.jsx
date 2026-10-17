@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import SearchToolbar from "../components/SearchToolbar.jsx";
+import ProductCard  from "../components/ProductCard.jsx";
 
 // ── ProductList page ──────────────────────────────────────────────────────────
 // Patterns introduced / extended in this file:
@@ -200,27 +201,8 @@ export default function ProductList() {
           {/* ── Real product cards ─────────────────────────────────────── */}
           {!loading &&
             visible.map((product) => (
-              // react-router-dom's <Link> renders an <a> but intercepts the
-              // click so the browser never does a full page reload.
-              <Link
-                key={product.id}
-                to={`/products/${product.id}`}
-                className="product-card"
-              >
-                {/* Image container */}
-                <div className="card-img-wrap">
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="card-img"
-                    loading="lazy"
-                  />
-                </div>
-                <div className="card-body">
-                  <h2 className="card-name">{product.name}</h2>
-                  <p className="card-price">${product.price.toFixed(2)}</p>
-                </div>
-              </Link>
+              // ProductCard is the shared card component — badge logic lives there.
+              <ProductCard key={product.id} product={product} />
             ))}
         </div>
 

@@ -1912,3 +1912,269 @@ ul, ol { list-style: none; }
   max-width: 340px;
 }
 
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   17. PRODUCT DETAIL PAGE  — two-column redesign
+   ══════════════════════════════════════════════════════════════════════════════
+
+   Layout strategy
+   ───────────────
+   pd-layout is a CSS grid with two named tracks:
+     [pd-media-col]  — the image / camera panel
+     [pd-info-col]   — name, price, description, buttons
+
+   Naming the tracks (grid-template-columns: [pd-media-col] 1fr [pd-info-col] 1fr)
+   makes breakpoint overrides easy to read: the intent stays visible in the media
+   query without needing comments.
+
+   Image card
+   ──────────
+   pd-img-card uses object-fit: contain with a warm neutral background (#f0ece5)
+   so PNG garment cutouts always look right regardless of source dimensions.
+   The same background and aspect-ratio are used on the product-list card for
+   visual continuity when navigating from the grid to the detail.
+
+   Try-On card
+   ───────────
+   pd-tryon-card intentionally mirrors pd-img-card in width and aspect-ratio so
+   swapping image ↔ camera doesn't cause layout shift. The card grows taller
+   than 4:5 on very wide screens but never collapses below it.
+
+   Breakpoints
+   ───────────
+   960 px  — stacks to single column (image then info)
+   640 px  — reduces page padding and font sizes for phones
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Two-column layout grid ──────────────────────────────────────────────── */
+.pd-layout {
+  display: grid;
+  grid-template-columns: [pd-media-col] 1fr [pd-info-col] 1fr;
+  gap: var(--space-10) var(--space-12);
+  align-items: start;
+}
+
+/* Stack to one column on tablets / phones */
+@media (max-width: 960px) {
+  .pd-layout {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+}
+@media (max-width: 640px) {
+  .pd-layout {
+    gap: var(--space-6);
+  }
+}
+
+/* ── Media column ────────────────────────────────────────────────────────── */
+.pd-media {
+  grid-column: pd-media-col;
+  /* Sticky on desktop so the image stays visible while scrolling the info */
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-6));
+}
+
+@media (max-width: 960px) {
+  .pd-media {
+    position: static;
+    grid-column: auto;
+  }
+}
+
+/* ── Product image card ──────────────────────────────────────────────────── */
+/*
+  A dedicated wrapper card (rather than a bare img) lets us:
+  • Apply a consistent warm background for cutout PNGs and photo-based images
+  • Add a subtle border + shadow as one element (no extra wrappers in JSX)
+  • Give the camera panel (pd-tryon-card) the exact same shell so swapping
+    image ↔ camera is visually seamless — no layout shift.
+*/
+.pd-img-card {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  background: #f0ece5;          /* warm neutral — matches product-list card   */
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow var(--transition-normal);
+}
+.pd-img-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.pd-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;         /* contain keeps garment cutouts un-cropped    */
+  padding: var(--space-6);
+  transition: transform var(--transition-slow);
+}
+.pd-img-card:hover .pd-img {
+  transform: scale(1.03);
+}
+
+/* ── Try-On camera card ──────────────────────────────────────────────────── */
+/*
+  Mirrors pd-img-card's border, shadow, and border-radius so the swap
+  between product image and camera panel is visually seamless.
+  min-aspect-ratio keeps the card from collapsing shorter than the image card.
+*/
+.pd-tryon-card {
+  width: 100%;
+  min-height: 0;                /* allow grid to control height               */
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  background: var(--color-surface);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: fade-in 0.2s ease;  /* reuse existing keyframe — smooth mount   */
+}
+
+/* ── Try-On card header row ──────────────────────────────────────────────── */
+/*
+  space-between spreads badge / toggle / close button across the full width.
+  flex-wrap ensures they wrap on narrow screens without overflowing.
+*/
+.pd-tryon-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+}
+
+/*
+  tryon-view-container already has overflow:hidden + border-radius in section 10.
+  We just make it fill the available space inside the card.
+*/
+.pd-tryon-card .tryon-view-container {
+  flex: 1;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/*
+  Tip inside the camera card: thin left border in accent colour acts as
+  a visual callout, distinct from the header line.
+*/
+.pd-tryon-card .tryon-tip {
+  border-radius: 0;
+  border-left: none;
+  border-top: 1px solid var(--color-border);
+  border-bottom: none;
+  border-right: none;
+  background: var(--color-surface-alt);
+  box-shadow: none;
+  max-width: 100%;
+}
+
+/* ── Info column ─────────────────────────────────────────────────────────── */
+.pd-info {
+  grid-column: pd-info-col;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+@media (max-width: 960px) {
+  .pd-info {
+    grid-column: auto;
+  }
+}
+
+/*
+  Back link lives inside the info column so it scrolls with the content.
+  Resetting margin-bottom to 0 here because the pd-info gap handles spacing.
+*/
+.pd-info .back-link {
+  margin-bottom: 0;
+  align-self: flex-start;
+}
+
+/* On desktop the detail-name can be large; fluid clamp keeps it readable */
+.pd-info .detail-name {
+  font-size: clamp(var(--text-2xl), 4vw, var(--text-4xl));
+}
+
+/* detail-actions row: allow wrapping so buttons never overflow on small phones */
+.pd-info .detail-actions {
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* ── Skeleton state ──────────────────────────────────────────────────────── */
+/*
+  The skeleton is built from the shared .skeleton + .skeleton-line utility
+  classes defined in section 5.  We override just the dimensions here so
+  each placeholder block matches the real element it stands in for.
+  No extra keyframes needed — the shimmer animation is already defined globally.
+*/
+.pd-info .back-link.skeleton { height: 12px; width: 120px; border-radius: var(--radius-full); }
+
+/* ── Not-found / error state ──────────────────────────────────────────────── */
+/*
+  Deliberately similar to .no-results (section 16) to keep the design language
+  consistent: centred column, emoji icon that floats, display-font heading.
+  We don't reuse .no-results because that class is reserved for the search page
+  empty state and has different max-width / copy semantics.
+*/
+.pd-not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-24) var(--space-4);
+  text-align: center;
+  animation: fade-in 0.3s ease;  /* reuse keyframe from section 16 */
+}
+
+.pd-not-found-icon {
+  font-size: 3rem;
+  opacity: 0.6;
+  animation: float 3s ease-in-out infinite;  /* reuse keyframe from section 16 */
+}
+
+.pd-not-found-heading {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+.pd-not-found-sub {
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+  max-width: 380px;
+  line-height: 1.6;
+}
+
+/* ── Responsive polish ────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .pd-tryon-header {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  /* On phones the try-on card doesn't need the large top sticky margin */
+  .pd-tryon-card .tryon-tip {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .pd-not-found {
+    padding: var(--space-16) var(--space-4);
+  }
+  .pd-not-found-heading {
+    font-size: var(--text-xl);
+  }
+}
