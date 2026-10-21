@@ -222,6 +222,17 @@ export default function ProductDetail() {
             ← Back to collection
           </Link>
 
+          {/* Category label above product name */}
+          {product.category && (
+            <Link
+              to={`/?category=${encodeURIComponent(product.category)}`}
+              className="pd-category-label"
+              id="product-category-link"
+            >
+              {product.category}
+            </Link>
+          )}
+
           <h1 className="detail-name">{product.name}</h1>
 
           <p className="detail-price">${product.price.toFixed(2)}</p>

@@ -55,17 +55,42 @@ export default function ProductList() {
   }, [products]);
 
   // ── URL-backed filter state via useSearchParams ────────────────────────────
-  // q      → ?q=hoodie
-  // sort   → ?sort=price-asc  (default: "featured" = original API order)
-  // price  → ?price=120       (default: full catalogue maximum)
+  // q        → ?q=hoodie
+  // sort     → ?sort=price-asc  (default: "featured" = original API order)
+  // price    → ?price=120       (default: full catalogue maximum)
+  // category → ?category=Tops
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const q        = searchParams.get("q")     ?? "";
-  const sort     = searchParams.get("sort")  ?? "featured";
+  const q        = searchParams.get("q")        ?? "";
+  const sort     = searchParams.get("sort")     ?? "featured";
+  const category = searchParams.get("category") ?? "";
   // price param is parsed as a number; fall back to priceMax once loaded
   const maxPrice = searchParams.has("price")
     ? Number(searchParams.get("price"))
     : priceMax;
+
+  // Categories and per-category product counts derived from loaded catalogue
+  const categories = useMemo(() => {
+    const seen = new Set();
+    const list = [];
+    for (const p of products) {
+      if (p.category && !seen.has(p.category)) {
+        seen.add(p.category);
+        list.push(p.category);
+      }
+    }
+    return list;
+  }, [products]);
+
+  const categoryCounts = useMemo(() => {
+    const counts = {};
+    for (const p of products) {
+      if (p.category) {
+        counts[p.category] = (counts[p.category] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [products]);
 
   // Helper: update one param while preserving the rest
   function setParam(key, value) {
@@ -85,12 +110,16 @@ export default function ProductList() {
   }
 
   // ── Derived visible list (filter → sort) ─────────────────────────────────
-  // useMemo recomputes only when products, q, sort, or maxPrice changes.
+  // useMemo recomputes only when products, q, sort, maxPrice, or category changes.
   const visible = useMemo(() => {
     const needle = q.trim().toLowerCase();
 
     // 1. Filter
     let list = products.filter((p) => {
+      // Category filter
+      const matchesCategory =
+        !category || category === "All" || p.category === category;
+
       // Case-insensitive match on name or description
       const matchesText =
         needle === "" ||
@@ -100,7 +129,7 @@ export default function ProductList() {
       // Price cap
       const matchesPrice = p.price <= maxPrice;
 
-      return matchesText && matchesPrice;
+      return matchesCategory && matchesText && matchesPrice;
     });
 
     // 2. Sort
@@ -122,7 +151,7 @@ export default function ProductList() {
     }
 
     return list;
-  }, [products, q, sort, maxPrice]);
+  }, [products, q, sort, maxPrice, category]);
 
   // ── Early returns ──────────────────────────────────────────────────────────
   if (error) return <p className="status-msg error">Error: {error}</p>;
@@ -167,11 +196,43 @@ export default function ProductList() {
             maxPrice={maxPrice}
             priceMin={priceMin}
             priceMax={priceMax}
+            category={category}
             onQ={(v)        => setParam("q",     v)}
             onSort={(v)     => setParam("sort",  v === "featured" ? null : v)}
             onMaxPrice={(v) => setParam("price", v >= priceMax ? null : v)}
             onClear={clearFilters}
           />
+        )}
+
+        {/* ── Category filter chips ──────────────────────────────────── */}
+        {!loading && products.length > 0 && (
+          <div
+            className="category-chips-row"
+            role="tablist"
+            aria-label="Filter by product category"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!category || category === "All"}
+              className={`category-chip${!category || category === "All" ? " active" : ""}`}
+              onClick={() => setParam("category", null)}
+            >
+              All
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                role="tab"
+                aria-selected={category === cat}
+                className={`category-chip${category === cat ? " active" : ""}`}
+                onClick={() => setParam("category", cat === category ? null : cat)}
+              >
+                {cat} ({categoryCounts[cat] || 0})
+              </button>
+            ))}
+          </div>
         )}
 
         {/* ── Label row: count + "X of Y" ────────────────────────────── */}

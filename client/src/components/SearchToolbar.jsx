@@ -20,6 +20,7 @@ export default function SearchToolbar({
   maxPrice,
   priceMin,
   priceMax,
+  category = "",
   onQ,
   onSort,
   onMaxPrice,
@@ -30,7 +31,11 @@ export default function SearchToolbar({
   const sortId     = useId();
   const priceId    = useId();
 
-  const isFiltered = q.length > 0 || sort !== "featured" || maxPrice < priceMax;
+  const isFiltered =
+    q.length > 0 ||
+    sort !== "featured" ||
+    maxPrice < priceMax ||
+    (Boolean(category) && category !== "All");
 
   return (
     <div className="search-toolbar" role="search" aria-label="Filter and sort products">
