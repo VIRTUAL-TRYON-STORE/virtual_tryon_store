@@ -26,7 +26,8 @@ const dbPromise = initSqlJs().then((SQL) => {
       price           REAL    NOT NULL,
       description     TEXT    NOT NULL DEFAULT '',
       image_url       TEXT    NOT NULL DEFAULT '',
-      tryon_image_url TEXT
+      tryon_image_url TEXT,
+      category        TEXT
     );
   `);
 
@@ -69,7 +70,7 @@ const dbPromise = initSqlJs().then((SQL) => {
   addColumnIfMissing("description", "TEXT", "");
   addColumnIfMissing("image_url",   "TEXT", "");
 
-  // ── tryon_image_url migration ─────────────────────────────────────────────
+  // ── tryon_image_url & category migration ──────────────────────────────────
   // Check with PRAGMA table_info(products) and run ALTER TABLE only if missing.
   const tableInfoResult = db.exec("PRAGMA table_info(products);");
   const existingCols = tableInfoResult.length > 0
@@ -77,6 +78,9 @@ const dbPromise = initSqlJs().then((SQL) => {
     : [];
   if (!existingCols.includes("tryon_image_url")) {
     db.run("ALTER TABLE products ADD COLUMN tryon_image_url TEXT;");
+  }
+  if (!existingCols.includes("category")) {
+    db.run("ALTER TABLE products ADD COLUMN category TEXT;");
   }
 
   // ── Seed data ─────────────────────────────────────────────────────────────
@@ -92,6 +96,7 @@ const dbPromise = initSqlJs().then((SQL) => {
         description: "A timeless 100% organic cotton crew-neck tee. Relaxed fit, pre-shrunk, available in S–XXL.",
         image_url: "/garments/tee.png",
         tryon_image_url: "/garments/tee.png",
+        category: "Tops",
       },
       {
         name: "Slim Fit Chinos",
@@ -99,6 +104,7 @@ const dbPromise = initSqlJs().then((SQL) => {
         description: "Tapered slim-fit chinos in stretch twill. Perfect for smart-casual looks.",
         image_url: "https://picsum.photos/seed/chinos/600/700",
         tryon_image_url: null,
+        category: "Bottoms",
       },
       {
         name: "Leather Bomber Jacket",
@@ -106,6 +112,7 @@ const dbPromise = initSqlJs().then((SQL) => {
         description: "Genuine full-grain leather bomber with ribbed cuffs and a YKK zip. A wardrobe staple.",
         image_url: "/garments/bomber.png",
         tryon_image_url: "/garments/bomber.png",
+        category: "Outerwear",
       },
       {
         name: "Floral Midi Dress",
@@ -113,6 +120,7 @@ const dbPromise = initSqlJs().then((SQL) => {
         description: "Lightweight viscose midi dress with an all-over floral print. Fully lined, back zip.",
         image_url: "https://picsum.photos/seed/floraldress/600/700",
         tryon_image_url: null,
+        category: "Dresses",
       },
       {
         name: "Knit Beanie",
@@ -120,6 +128,7 @@ const dbPromise = initSqlJs().then((SQL) => {
         description: "Super-soft merino wool beanie with a cuffed edge. One size fits most.",
         image_url: "https://picsum.photos/seed/beanie/600/700",
         tryon_image_url: null,
+        category: "Accessories",
       },
       {
         name: "Running Sneakers",
@@ -127,6 +136,7 @@ const dbPromise = initSqlJs().then((SQL) => {
         description: "Lightweight mesh sneakers with a cushioned EVA sole. Breathable, gender-neutral design.",
         image_url: "https://picsum.photos/seed/sneakers/600/700",
         tryon_image_url: null,
+        category: "Shoes",
       },
       {
         name: "Oversized Hoodie",
@@ -134,6 +144,7 @@ const dbPromise = initSqlJs().then((SQL) => {
         description: "Brushed fleece oversized hoodie with a kangaroo pocket and adjustable drawcord.",
         image_url: "/garments/hoodie.png",
         tryon_image_url: "/garments/hoodie.png",
+        category: "Tops",
       },
       {
         name: "Tailored Blazer",
@@ -141,15 +152,16 @@ const dbPromise = initSqlJs().then((SQL) => {
         description: "Single-breasted slim blazer in stretch ponte fabric. Works as a suit or separate.",
         image_url: "/garments/blazer.png",
         tryon_image_url: "/garments/blazer.png",
+        category: "Outerwear",
       },
     ];
 
     // sql.js uses prepared statements the same way SQLite does.
     const stmt = db.prepare(
-      "INSERT INTO products (name, price, description, image_url, tryon_image_url) VALUES (?, ?, ?, ?, ?)"
+      "INSERT INTO products (name, price, description, image_url, tryon_image_url, category) VALUES (?, ?, ?, ?, ?, ?)"
     );
-    products.forEach(({ name, price, description, image_url, tryon_image_url }) => {
-      stmt.run([name, price, description, image_url, tryon_image_url || null]);
+    products.forEach(({ name, price, description, image_url, tryon_image_url, category }) => {
+      stmt.run([name, price, description, image_url, tryon_image_url || null, category || null]);
     });
     stmt.free(); // always free prepared statements when done
   }
@@ -171,6 +183,26 @@ const dbPromise = initSqlJs().then((SQL) => {
     updateStmt.run([garment, garment, name, id]);
   });
   updateStmt.free();
+
+  // For products, ensure category is set. Matched by exact name and id from seed data.
+  const categoryProducts = [
+    { id: 1, name: "Classic White Tee", category: "Tops" },
+    { id: 2, name: "Slim Fit Chinos", category: "Bottoms" },
+    { id: 3, name: "Leather Bomber Jacket", category: "Outerwear" },
+    { id: 4, name: "Floral Midi Dress", category: "Dresses" },
+    { id: 5, name: "Knit Beanie", category: "Accessories" },
+    { id: 6, name: "Running Sneakers", category: "Shoes" },
+    { id: 7, name: "Oversized Hoodie", category: "Tops" },
+    { id: 8, name: "Tailored Blazer", category: "Outerwear" },
+  ];
+
+  const catUpdateStmt = db.prepare(
+    "UPDATE products SET category = ? WHERE name = ? OR id = ?;"
+  );
+  categoryProducts.forEach(({ id, name, category }) => {
+    catUpdateStmt.run([category, name, id]);
+  });
+  catUpdateStmt.free();
 
   // ── Persist helper ────────────────────────────────────────────────────────
   // Call this after every write so changes survive server restarts.
