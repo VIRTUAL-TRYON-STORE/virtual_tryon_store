@@ -1,17 +1,18 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useCartContext } from "../context/CartContext.jsx";
+import { useWishlistContext } from "../context/WishlistContext.jsx";
 
 // ── Header ────────────────────────────────────────────────────────────────────
 // Rendered on every page (see App.jsx, where it lives outside <Routes>).
-// It reads totalItems from CartContext so the cart badge stays up-to-date
-// across all pages without any props being passed in.
+// It reads totalItems from CartContext and count from WishlistContext so the
+// respective badges stay up-to-date across all pages without prop-drilling.
 //
 // Visual redesign: frosted-glass sticky bar, serif wordmark "Drape",
-// animated underline nav-links, and a green badge on the cart icon.
-// Logic is unchanged — same useCartContext() + Link structure.
+// animated underline nav-links, and count badges on Wishlist & Cart icons.
 export default function Header() {
   const { totalItems } = useCartContext();
+  const { count: wishlistCount } = useWishlistContext();
 
   // Add a "scrolled" class once the user scrolls past 10px
   // so we can add a drop shadow via CSS (.site-header.scrolled).
@@ -34,6 +35,35 @@ export default function Header() {
         <nav className="header-nav" aria-label="Primary navigation">
           <Link to="/" className="nav-link">
             Home
+          </Link>
+
+          {/* Wishlist link with a badge showing item count */}
+          <Link
+            to="/wishlist"
+            className="nav-link wishlist-nav-link"
+            id="wishlist-nav-btn"
+            aria-label={`Wishlist, ${wishlistCount} item${wishlistCount !== 1 ? "s" : ""}`}
+          >
+            {/* Inline SVG heart icon */}
+            <svg
+              className="wishlist-nav-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              fill={wishlistCount > 0 ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+            Wishlist
+            {/* Only show the badge when there is at least one item */}
+            {wishlistCount > 0 && (
+              <span className="cart-badge wishlist-nav-badge" aria-hidden="true">
+                {wishlistCount}
+              </span>
+            )}
           </Link>
 
           {/* Cart link with a badge showing item count */}

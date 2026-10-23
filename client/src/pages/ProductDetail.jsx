@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useCartContext } from "../context/CartContext.jsx";
 import TryOn from "../tryon/TryOn.jsx";
 import ProductCard from "../components/ProductCard.jsx";
+import WishlistButton from "../components/WishlistButton.jsx";
 
 // ── ProductDetail page ────────────────────────────────────────────────────────
 // Mounted when the URL is "/products/:id".
@@ -233,7 +234,14 @@ export default function ProductDetail() {
             </Link>
           )}
 
-          <h1 className="detail-name">{product.name}</h1>
+          <div className="pd-title-row">
+            <h1 className="detail-name">{product.name}</h1>
+            <WishlistButton
+              product={product}
+              size="lg"
+              className="pd-wishlist-btn"
+            />
+          </div>
 
           <p className="detail-price">${product.price.toFixed(2)}</p>
 

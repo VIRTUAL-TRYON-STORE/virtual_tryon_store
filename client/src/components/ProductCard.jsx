@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import WishlistButton from "./WishlistButton.jsx";
 
 // ── ProductCard ───────────────────────────────────────────────────────────────
 // Shared card component used in:
@@ -19,6 +20,14 @@ export default function ProductCard({ product }) {
   return (
     <Link to={`/products/${product.id}`} className="product-card">
       <div className="card-img-wrap">
+        {/* Wishlist Heart Button — top corner. Its click handler calls
+            stopPropagation() and preventDefault() to prevent navigating
+            to the product detail page when toggled. */}
+        <WishlistButton
+          product={product}
+          className="card-wishlist-btn"
+        />
+
         <img
           src={product.image_url}
           alt={product.name}
